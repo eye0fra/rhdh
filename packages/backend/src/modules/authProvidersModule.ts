@@ -64,6 +64,12 @@ import {
   createOAuthProviderFactory,
   createProxyAuthProviderFactory,
 } from '@backstage/plugin-auth-node';
+// Import RHAAP authenticator and client from the plugins
+import { 
+  aapAuthAuthenticator,
+  AAPAuthSignInResolvers,
+  AAPClient 
+} from '@ansible/backstage-plugin-auth-backend-module-rhaap-provider';
 
 import { TransitiveGroupOwnershipResolver } from '../transitiveGroupOwnershipResolver';
 import { trySignInResolvers } from './resolverUtils';
@@ -72,6 +78,7 @@ import { rhdhSignInResolvers } from './rhdhSignInResolvers';
 function getAuthProviderFactory(
   providerId: string,
   disableIdentityResolution: boolean,
+  deps?: { config?: any; logger?: any; discovery?: any },
 ): AuthProviderFactory {
   const applySignInResolvers = (options: {
     signInResolver: any;
@@ -267,6 +274,24 @@ function getAuthProviderFactory(
           },
         }),
       });
+    case 'rhaap':
+      // RHAAP OAuth2 provider for Ansible Automation Platform
+      // Create AAPClient instance for the authenticator
+      const aapClient = new AAPClient({
+        rootConfig: deps?.config,
+        logger: deps?.logger,
+      });
+      
+      return createOAuthProviderFactory({
+        authenticator: aapAuthAuthenticator(aapClient),
+        ...applySignInResolvers({
+          signInResolver: AAPAuthSignInResolvers.usernameMatchingUser,
+          signInResolverFactories: {
+            ...AAPAuthSignInResolvers,
+            ...commonSignInResolvers,
+          },
+        }),
+      });
     default:
       throw new Error(`No auth provider found for ${providerId}`);
   }
@@ -308,6 +333,7 @@ const authProvidersModule = createBackendModule({
             const factory = getAuthProviderFactory(
               providerId,
               disableIdentityResolution,
+              { config, logger, discovery },
             );
             authFactories[providerId] = factory;
           });

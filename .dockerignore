@@ -4,6 +4,8 @@
 **/node_modules
 plugins
 !plugins/auth-backend-module-oidc-provider
+!plugins/auth-backend-module-rhaap-provider
+!plugins/backstage-rhaap-common
 !plugins/dynamic-plugins-info-backend
 !plugins/licensed-users-info-backend
 !plugins/scalprum-backend

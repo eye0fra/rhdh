@@ -69,6 +69,8 @@ COPY $EXTERNAL_SOURCE_NESTED/yarn.lock ./
 COPY $EXTERNAL_SOURCE_NESTED/plugins/scalprum-backend/package.json ./plugins/scalprum-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/licensed-users-info-backend/package.json ./plugins/licensed-users-info-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/dynamic-plugins-info-backend/package.json ./plugins/dynamic-plugins-info-backend/package.json
+COPY $EXTERNAL_SOURCE_NESTED/plugins/auth-backend-module-rhaap-provider/package.json ./plugins/auth-backend-module-rhaap-provider/package.json
+COPY $EXTERNAL_SOURCE_NESTED/plugins/backstage-rhaap-common/package.json ./plugins/backstage-rhaap-common/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/theme-wrapper/package.json ./packages/theme-wrapper/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/plugin-utils/package.json ./packages/plugin-utils/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/backend/package.json ./packages/backend/package.json
@@ -93,7 +95,7 @@ RUN NODE_HEADERS_VERSION=$(node --version); echo "=== Install node headers $NODE
 # Increase timeout for yarn install
 RUN "$YARN" config set httpTimeout 600000
 
-RUN echo "=== YARN INSTALL ==="; FAILED=0; "$YARN" install --immutable || FAILED=1; \
+RUN echo "=== YARN INSTALL ==="; FAILED=0; "$YARN" install || FAILED=1; \
   for d in /tmp/xfs-*; do if [[ -f ${d}/build.log ]]; then \
   (( FAILED = FAILED + 1 )); \
   echo; echo $d; \
@@ -132,7 +134,7 @@ RUN echo "=== YARN BUILD ==="; FAILED=0; \
 
 WORKDIR $CONTAINER_SOURCE/dynamic-plugins
 
-RUN echo "=== DYNAMIC PLUGIN YARN INSTALL ==="; FAILED=0; "$YARN" install --immutable || FAILED=1; \
+RUN echo "=== DYNAMIC PLUGIN YARN INSTALL ==="; FAILED=0; "$YARN" install || FAILED=1; \
   for d in /tmp/xfs-*; do if [[ -f ${d}/build.log ]]; then \
   (( FAILED = FAILED + 1 )); \
   echo; echo $d; \

@@ -69,6 +69,8 @@ COPY $EXTERNAL_SOURCE_NESTED/yarn.lock ./
 COPY $EXTERNAL_SOURCE_NESTED/plugins/scalprum-backend/package.json ./plugins/scalprum-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/licensed-users-info-backend/package.json ./plugins/licensed-users-info-backend/package.json
 COPY $EXTERNAL_SOURCE_NESTED/plugins/dynamic-plugins-info-backend/package.json ./plugins/dynamic-plugins-info-backend/package.json
+COPY $EXTERNAL_SOURCE_NESTED/plugins/auth-backend-module-rhaap-provider/package.json ./plugins/auth-backend-module-rhaap-provider/package.json
+COPY $EXTERNAL_SOURCE_NESTED/plugins/auth-backend-module-rhaap-provider/plugins/backstage-rhaap-common ./plugins/auth-backend-module-rhaap-provider/plugins/backstage-rhaap-common
 COPY $EXTERNAL_SOURCE_NESTED/packages/theme-wrapper/package.json ./packages/theme-wrapper/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/plugin-utils/package.json ./packages/plugin-utils/package.json
 COPY $EXTERNAL_SOURCE_NESTED/packages/backend/package.json ./packages/backend/package.json
@@ -98,7 +100,11 @@ RUN "$YARN" config set httpTimeout 600000
 #   export YARN_ENABLE_IMMUTABLE_CACHE=false
 #   export YARN_ENABLE_MIRROR=true
 #   export YARN_GLOBAL_FOLDER=/cachi2/output/deps/yarn
-RUN cat /cachi2/cachi2.env; echo; find /cachi2/output/deps/yarn/*
+#RUN cat /cachi2/cachi2.env; echo; find /cachi2/output/deps/yarn/*
+env YARN_ENABLE_GLOBAL_CACHE=false
+env YARN_ENABLE_IMMUTABLE_CACHE=false
+env YARN_ENABLE_MIRROR=true
+env YARN_GLOBAL_FOLDER=/cachi2/output/deps/yarn
 
 RUN echo "=== YARN INSTALL ==="; FAILED=0; "$YARN" install --immutable || FAILED=1; \
   for d in /tmp/xfs-*; do if [[ -f ${d}/build.log ]]; then \
