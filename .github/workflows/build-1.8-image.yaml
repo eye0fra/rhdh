@@ -13,6 +13,8 @@ concurrency:
 env:
   REGISTRY: quay.io
   REGISTRY_IMAGE: mmascia/rhdh
+  # Enable Docker experimental features for squash support
+  DOCKER_CLI_EXPERIMENTAL: enabled
 
 jobs:
   build-and-push:
@@ -73,6 +75,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
+      # Option 1: Build with BuildKit and maximum compression (recommended)
       - name: Build and Push
         id: docker-build
         uses: docker/build-push-action@v5
@@ -92,6 +95,28 @@ jobs:
           build-args: |
             BUILDKIT_PROGRESS=plain
             DOCKER_BUILDKIT=1
+          # BuildKit optimization: max compression and min layers
+          outputs: type=image,push=true,compression=gzip,compression-level=9,force-compression=true
+
+      # Option 2: Alternative - Build with legacy builder and squash (uncomment if needed)
+      # - name: Build with Squash (Legacy Builder)
+      #   run: |
+      #     # Disable BuildKit to use legacy builder with squash
+      #     export DOCKER_BUILDKIT=0
+      #     
+      #     # Build with squash flag (experimental)
+      #     docker build \
+      #       --squash \
+      #       -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:1.8 \
+      #       -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:1.8-${{ github.sha }} \
+      #       -t ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:latest \
+      #       -f ./docker/Dockerfile \
+      #       .
+      #     
+      #     # Push all tags
+      #     docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:1.8
+      #     docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:1.8-${{ github.sha }}
+      #     docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_IMAGE }}:latest
 
       # Save yarn cache after successful build
       - name: Save yarn cache
